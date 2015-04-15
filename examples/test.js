@@ -1,4 +1,4 @@
-var retdec = require('./../').apiKey('YOUR_KEY_HERE');
+var retdec = require('./../').apiKey('YOUR_API_KEY_HERE');
 
 
 var testing = {
@@ -7,6 +7,7 @@ var testing = {
 };
 
 
+/*
 retdec.test(testing, function(err, res) {
     if (err) {
         console.log('Error test: ' + res);
@@ -19,6 +20,16 @@ retdec.test(testing, function(err, res) {
 
 
 retdec.fileInfo('/bin/ls', { verbose: true } , function(err, res) {
+    if (err) {
+        console.log('Error (' + err + '): ' + res);
+        return;
+    }
+
+    console.log('File info');
+    console.log(res);
+}); */
+
+retdec.decompile(process.argv[2], 'bin', null , function(err, res) {
     if (err) {
         console.log('Error (' + err + '): ' + res);
         return;
