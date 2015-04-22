@@ -1,5 +1,7 @@
 var http = require('https');
 var url = require('url');
+
+var web = require('./web');
 var multipart = require('./multipart');
 
 
@@ -15,50 +17,12 @@ var _cfg = {
 
 
 /**
- * Get the output result
- * 
- * @param  {object}   info     object containing api response
- * @param  {Function} callback(err, result)
- */
-function getOutput(info, callback)
-{
-    var output = info.links.output;
-    var parsed = url.parse(output);
-
-    var reqopts = {
-        host: parsed.hostname,
-        path: parsed.path,
-        auth: _cfg.apiKey + ':',
-    };
-
-    var req = http.get(reqopts, function(res) {
-
-        var body = "";
-
-        res.on('data', function(data) {
-            body += data;
-        });
-
-        res.on('end', function() {
-            callback(0, body);            
-        });
-    });
-
-    req.on('error', function(e) {
-        clearInterval(interval);
-        callback(-21, "Error on request");
-    });
-
-}
-
-
-/**
  * Wait till result is complete
  * 
  * @param  {object}   info     object containing api response
  * @param  {Function} callback(err, result)
  */
-function getResult(info, callback)
+function waitForCompletion(info, callback)
 {
     var status = info.links.status;
     var parsed = url.parse(status);
@@ -70,47 +34,34 @@ function getResult(info, callback)
     };
 
     /* Check status till finised */
-    var interval = setInterval(function() {
+    web.request(reqopts, 'https', null, function(err, body, code) {
+        if (err) {
+            callback(err, body);
+            return;
+        }
 
-        var req = http.get(reqopts, function(res) {
+        try {
+            var json = JSON.parse(body);
+        } catch (e) {
+            callback(-12, 'Error parsing response (' + e + ')');
+            return;
+        }
 
-            var body = "";
+        if (json.finished) {
+            if (json.failed) {
+                callback(-13, json.error);
+                return;
+            }
 
-            res.on('data', function(data) {
-                body += data;
-            });
+            callback(0, 'done');
+            return;
+        }
 
-            res.on('end', function() {
-
-                try {
-                    var json = JSON.parse(body);
-
-                    if (json.finished) {
-                        clearInterval(interval);
-
-                        if (json.failed) {
-                            callback(-13, json.error);
-                            return;
-                        }
-
-                        getOutput(info, callback);
-                    }
-
-                } catch (e) {
-                    clearInterval(interval);
-                    //console.log(body);
-                    callback(-12, 'Error parsing response (' + e + ')');
-                }
-                
-            });
-        });
-
-        req.on('error', function(e) {
-            clearInterval(interval);
-            callback(-11, "Error on request");
-        });
-
-    }, 2000);
+        /* Wait one second and check again */
+        setTimeout(function() {
+            waitForCompletion(info, callback);
+        }, 1000);
+    });
 }
 
 
@@ -134,35 +85,102 @@ function test(echoargs, callback)
     keys.forEach(function(key) {
         reqopts.path += key + '=' + echoargs[key] + '&';
     });
-    
-    /* Do the request */
-    var req = http.request(reqopts, function (response) {
-        var body = '';
 
-        response.on('data', function (chunk) {
-            body += chunk;
-        });
+    web.request(reqopts, 'https', null, function(err, body, code) {
+        if (err) {
+            callback(err, body);
+            return;
+        }
 
-        response.on('end', function () {
-            if (response.statusCode !== 200) {
-                callback(-2, 'Bad HTTP response: ' + response.statusCode);
-            } else {
-                try {
-                    var json = JSON.parse(body);
-                    callback(0, json);
-                } catch (e) {
-                    callback(-3, 'Error parsing JSON: ' + e);
+        if (code !== 200) {
+            callback(-2, 'Bad HTTP response: ' + code);
+        } else {
+            try {
+                var json = JSON.parse(body);
+            } catch (e) {
+                callback(-3, 'Error parsing JSON: ' + e);
+                return;
+            }
+            callback(0, json);
+        }
+    });
+}
+
+
+function fetchOutputs(info, callback)
+{
+    var results = {};
+    var pending = 0;
+
+    var keys = Object.keys(info);
+        keys.forEach(function(key) {
+
+            if (typeof info[key] === 'object') {
+                pending++;
+
+                fetchOutputs(info[key], function(res) {
+                    pending--;
+                    results[key] = res;
+
+                    if (pending === 0)
+                        callback(results);
+                });
+
+            } else if (info[key].indexOf('https://') !== -1) {
+                pending++;
+
+                var newUrl = url.parse(info[key]);
+                var newReq = {
+                    host: newUrl.hostname,
+                    path: newUrl.path,
+                    auth: _cfg.apiKey + ':',
                 }
+
+                web.request(newReq, 'https', null, function(err, body, code) {
+                    pending--;
+                    results[key] = body;
+
+                    if (pending === 0)
+                        callback(results);
+                })
             }
         });
-    });
-    
-    req.on('error', function (e) {
-        callback(-1, 'Error requesting');
-    });
-    
-    req.end();
 }
+
+
+function fetchDecompilationResults(info, callback)
+{
+    var output = info.links.outputs;
+    var parsed = url.parse(output);
+
+    var reqopts = {
+        host: parsed.hostname,
+        path: parsed.path,
+        auth: _cfg.apiKey + ':',
+    };
+
+    web.request(reqopts, 'https', null, function(err, body, code) {
+        if (err) {
+            callback(err, body);
+            return;
+        }
+
+        try {
+            var json = JSON.parse(body);
+        } catch (e) {
+            callback(-5, 'Error parsing JSON: ' + e);
+            return;
+        }
+
+        /* Get every output */
+        fetchOutputs(json.links, function(result) {
+            callback(0, result);
+        });
+
+    });
+
+}
+
 
 
 function decompile(file, mode, options, callback)
@@ -211,38 +229,36 @@ function decompile(file, mode, options, callback)
     buf = Buffer.concat(parameters);
     reqopts.headers['content-length'] = buf.length;
 
+
     /* Make the request */
-    var req = http.request(reqopts, function (response) {
-        var body = '';
+    web.request(reqopts, 'https', buf, function(err, body, code) {
+        if (err) {
+            callback(err, body);
+            return;
+        }
 
-        response.on('data', function (chunk) {
-            body += chunk;
-        });
+        try {
+            var json = JSON.parse(body);
+        } catch (e) {
+            callback(-3, 'Error parsing response: ' + e);
+            return;
+        }
 
-        response.on('end', function () {
-            try {
-                var json = JSON.parse(body);
-                json.links.output = _cfg.decompiler[0] + json.id + _cfg.decompiler[1];
-                //console.log(json);
+        if (json.description) {
+            callback(-2, json.description);
+            return;
+        }
 
-                if (json.description)
-                    callback(-2, json.description);
-
-                /* Wait for completion */
-                getResult(json, callback);
-            } catch (e) {
-                //console.log(body);
-                callback(-3, 'Error parsing response: ' + e);
+        /* Wait for completion */
+        waitForCompletion(json, function(err, message) {
+            if (err) {
+                callback(-61, message);
+                return;
             }
+
+            fetchDecompilationResults(json, callback);
         });
     });
-
-    req.on('error', function (e) {
-        callback(-1, 'Error requesting');
-    });
-
-    req.write(buf);
-    req.end();
 }
 
 
@@ -295,37 +311,40 @@ function fileInfo(file, options, callback)
     reqopts.headers['content-length'] = buf.length;
 
 
-    
-    /* Make the request */
-    var req = http.request(reqopts, function (response) {
-        var body = '';
+    web.request(reqopts, 'https', buf, function(err, body, code) {
+        if (err) {
+            callback(err, body);
+            return;
+        }
 
-        response.on('data', function (chunk) {
-            body += chunk;
-        });
+        try {
+            var json = JSON.parse(body);
+        } catch (e) {
+            callback(-3, 'Error parsing response: ' + e);
+            return;
+        }
 
-        response.on('end', function () {
-            try {
-                var json = JSON.parse(body);
+        if (json.description)
+            callback(-2, json.description);
 
-                if (json.description)
-                    callback(-2, json.description);
-
-                /* Wait for completion */
-                getResult(json, callback);
-            } catch (e) {
-                //console.log(body);
-                callback(-3, 'Error parsing response: ' + e);
+        /* Wait for completion & fetch output */
+        waitForCompletion(json, function(err, message) {
+            if (err) {
+                callback(-61, message);
+                return;
             }
+
+            /* Fetch output */
+            var newUrl = url.parse(json.links.output);
+            var newReq = {
+                    host: newUrl.hostname,
+                    path: newUrl.path,
+                    auth: _cfg.apiKey + ':',
+                }
+
+            web.request(newReq, 'https', null, callback);
         });
     });
-
-    req.on('error', function (e) {
-        callback(-1, 'Error requesting');
-    });
-
-    req.write(buf);
-    req.end();
 }
 
 
