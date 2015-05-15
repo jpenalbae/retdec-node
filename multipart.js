@@ -16,7 +16,7 @@ function addParameter(key, value, boundary)
 
     data = '--' + boundary + "\r\n";
     data += 'Content-Disposition: form-data; name="' + key + '"\r\n\r\n';
-    data += value + '\r\n'
+    data += value + '\r\n';
 
     return new Buffer(data);
 }
@@ -41,7 +41,7 @@ function addFile(key, file, boundary)
     data = '--' + boundary + "\r\n";
     data += 'Content-Disposition: form-data; name="' + key + '"; ';
     data += 'filename="' + filename + '"\r\n';
-    data += 'Content-Type: application/octet-stream\r\n\r\n'
+    data += 'Content-Type: application/octet-stream\r\n\r\n';
     chunks.push(new Buffer(data));
 
     /* Read the file */

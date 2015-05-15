@@ -13,7 +13,7 @@ var _cfg = {
         '/outputs/hll'
     ],
     boundary: '------------------------b6e7313f78e3d875'
-}
+};
 
 
 /**
@@ -35,13 +35,15 @@ function waitForCompletion(info, callback)
 
     /* Check status till finised */
     web.request(reqopts, 'https', null, function(err, body, code) {
+        var json;
+
         if (err) {
             callback(err, body);
             return;
         }
 
         try {
-            var json = JSON.parse(body);
+            json = JSON.parse(body);
         } catch (e) {
             callback(-12, 'Error parsing response (' + e + ')');
             return;
@@ -87,6 +89,8 @@ function test(echoargs, callback)
     });
 
     web.request(reqopts, 'https', null, function(err, body, code) {
+        var json;
+
         if (err) {
             callback(err, body);
             return;
@@ -96,7 +100,7 @@ function test(echoargs, callback)
             callback(-2, 'Bad HTTP response: ' + code);
         } else {
             try {
-                var json = JSON.parse(body);
+                json = JSON.parse(body);
             } catch (e) {
                 callback(-3, 'Error parsing JSON: ' + e);
                 return;
@@ -134,7 +138,7 @@ function fetchOutputs(info, callback)
                     host: newUrl.hostname,
                     path: newUrl.path,
                     auth: _cfg.apiKey + ':',
-                }
+                };
 
                 web.request(newReq, 'https', null, function(err, body, code) {
                     pending--;
@@ -142,7 +146,7 @@ function fetchOutputs(info, callback)
 
                     if (pending === 0)
                         callback(results);
-                })
+                });
             }
         });
 }
@@ -160,13 +164,15 @@ function fetchDecompilationResults(info, callback)
     };
 
     web.request(reqopts, 'https', null, function(err, body, code) {
+        var json;
+
         if (err) {
             callback(err, body);
             return;
         }
 
         try {
-            var json = JSON.parse(body);
+            json = JSON.parse(body);
         } catch (e) {
             callback(-5, 'Error parsing JSON: ' + e);
             return;
@@ -232,13 +238,15 @@ function decompile(file, mode, options, callback)
 
     /* Make the request */
     web.request(reqopts, 'https', buf, function(err, body, code) {
+        var json;
+
         if (err) {
             callback(err, body);
             return;
         }
 
         try {
-            var json = JSON.parse(body);
+            json = JSON.parse(body);
         } catch (e) {
             callback(-3, 'Error parsing response: ' + e);
             return;
@@ -312,13 +320,15 @@ function fileInfo(file, options, callback)
 
 
     web.request(reqopts, 'https', buf, function(err, body, code) {
+        var json;
+
         if (err) {
             callback(err, body);
             return;
         }
 
         try {
-            var json = JSON.parse(body);
+            json = JSON.parse(body);
         } catch (e) {
             callback(-3, 'Error parsing response: ' + e);
             return;
@@ -340,7 +350,7 @@ function fileInfo(file, options, callback)
                     host: newUrl.hostname,
                     path: newUrl.path,
                     auth: _cfg.apiKey + ':',
-                }
+                };
 
             web.request(newReq, 'https', null, callback);
         });
