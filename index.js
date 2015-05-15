@@ -117,38 +117,42 @@ function fetchOutputs(info, callback)
     var pending = 0;
 
     var keys = Object.keys(info);
-        keys.forEach(function(key) {
+    keys.forEach(function(key) {
 
-            if (typeof info[key] === 'object') {
-                pending++;
+        if (typeof info[key] === 'object') {
 
-                fetchOutputs(info[key], function(res) {
-                    pending--;
-                    results[key] = res;
+            /* Check for empty objects */
+            if (Object.keys(info[key]).length <= 0)
+                return;
 
-                    if (pending === 0)
-                        callback(results);
-                });
+            pending++;
+            fetchOutputs(info[key], function(res) {
+                pending--;
+                results[key] = res;
 
-            } else if (info[key].indexOf('https://') !== -1) {
-                pending++;
+                if (pending === 0)
+                    callback(results);
+            });
 
-                var newUrl = url.parse(info[key]);
-                var newReq = {
-                    host: newUrl.hostname,
-                    path: newUrl.path,
-                    auth: _cfg.apiKey + ':',
-                };
+        } else if (info[key].indexOf('https://') !== -1) {
+            pending++;
 
-                web.request(newReq, 'https', null, function(err, body, code) {
-                    pending--;
-                    results[key] = body;
+            var newUrl = url.parse(info[key]);
+            var newReq = {
+                host: newUrl.hostname,
+                path: newUrl.path,
+                auth: _cfg.apiKey + ':',
+            };
 
-                    if (pending === 0)
-                        callback(results);
-                });
-            }
-        });
+            web.request(newReq, 'https', null, function(err, body, code) {
+                pending--;
+                results[key] = body;
+
+                if (pending === 0)
+                    callback(results);
+            });
+        }
+    });
 }
 
 
