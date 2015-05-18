@@ -6,14 +6,34 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+   "files": [
+    "README.md",
+    "LICENSE",
+    "index.js",
+    "multipart.js",
+    "web.js",
+    "examples/test.js"
+  ],
   "keywords": [
     "decompiler",
     "retdec",
+    "retdect.com"
     "retargetable",
     "asm",
     "assembly",
     "disassembler"
   ],
-  "author": "Jaime Peñalba",
-  "license": "LGPL-3.0"
+  "author": {
+    "name": "Jaime Peñalba",
+    "email": "jpenalbae@gmail.com"
+  },
+  "license": "LGPL-3.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jpenalbae/retdec-node.git"
+  },
+  "bugs": {
+    "url": "https://github.com/jpenalbae/retdec-node/issues"
+  },
+  "homepage": "https://github.com/jpenalbae/retdec-node"
 }
