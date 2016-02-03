@@ -5,7 +5,7 @@ Retdec is decompiler that can be utilized for source code recovery, static malwa
 
 ######Features
 
-* Handles all the commonly used file formats (ELF, PE).
+* Handles all the commonly used file formats (ELF, PE, COFF).
 * Currently supports the Intel x86, ARM, MIPS, PIC32, and PowerPC architectures.
 * Can decompile to two output high-level languages: C and a Python-like language.
 * Compiler and packer detection.
