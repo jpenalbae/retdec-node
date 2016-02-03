@@ -1,5 +1,5 @@
 # retdec-node
-Node.js npm module providing easy access to the retdec.com decompilation service through their REST API.
+Node.js npm module providing easy access to the [retdec.com](https://retdec.com) decompilation service through their [REST API](https://retdec.com/api/).
 
 Retdec is decompiler that can be utilized for source code recovery, static malware analysis, etc. The decompiler is supposed to be not bounded to any particular target architecture, operating system, or executable file format.
 
