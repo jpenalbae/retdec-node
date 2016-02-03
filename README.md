@@ -28,7 +28,7 @@ $ npm install retdec
 
 If you don't have a retdec API key, register here https://retdec.com/registration/ to get one
 
-Once the plugin has been installed you must initilizate it with your API key.
+Once the plugin has been installed you must initialize it with your API key.
 ```js
 var rdec = require('retdect');
 var retdec = rdec.apiKey('YOUR_API_KEY_HERE');
@@ -101,4 +101,4 @@ $ node test-mine.js
 { dos: '2', hola: 'adios' }
 ```
 
-####More doc comming soon...
+####More doc coming soon...
