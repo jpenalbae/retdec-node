@@ -26,9 +26,9 @@ You may install this plugin using this command:
 $ npm install retdec
 ```
 
-If you don't have a retdec API key, register [here](https://retdec.com/registration/) to get one
+If you don't have a retdec API key, register [here](https://retdec.com/registration/) to get one.
 
-Once the plugin has been installed you must initialize it with your API key.
+Once the plugin has been installed you must initialize it with your API key:
 ```js
 var rdec = require('retdect');
 var retdec = rdec.apiKey('YOUR_API_KEY_HERE');
@@ -55,7 +55,7 @@ retdec.decompile(process.argv[2], 'bin', null, function(err, res) {
 });
 ```
 
-**Note** that this plugin relies on retdec official API, so outputs and arguments are defined by their API instead of by this module. For a better understanding of the API, please visit the [official documentation](https://retdec.com/api/docs/)
+**Note** that this plugin relies on retdec official API, so outputs and arguments are defined by their API instead of by this module. For a better understanding of the API, please visit the [official documentation](https://retdec.com/api/docs/).
 
 * * *
 
@@ -66,13 +66,13 @@ retdec.decompile(process.argv[2], 'bin', null, function(err, res) {
 
 This is a simple echo test to be able to check your API key. It will return the echoargs argument in the response.
 
-Detailed documentation is [here](https://retdec.com/api/docs/test.html)
+Detailed documentation is [here](https://retdec.com/api/docs/test.html).
 
 ######echoargs
 Any object with any key/values is valid for echo test.
 
 ######callback
-The callback to be called once the response is ready
+The callback to be called once the response is ready.
 
 **Sample**
 
