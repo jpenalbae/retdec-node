@@ -77,7 +77,7 @@ The callback to be called once the response is ready
 **Sample**
 
 ```js
-var retdec = require('retdect').apiKey('YOUR_API_KEY_HERE'); 	
+var retdec = require('retdect').apiKey('YOUR_API_KEY_HERE');
 
 var testing = {
     hola: 'adios',
@@ -97,7 +97,7 @@ retdec.test(testing, function(err, res) {
 **Sample output**
 
 ```
-$ node test-mine.js 
+$ node test-mine.js
 { dos: '2', hola: 'adios' }
 ```
 
